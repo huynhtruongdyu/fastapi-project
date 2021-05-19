@@ -24,6 +24,6 @@ def is_database_online():
     # print(test)
     return True
 
-app.add_api_route("/", health([is_database_online]))
+app.add_api_route("/hc", health([is_database_online]))
 
 
