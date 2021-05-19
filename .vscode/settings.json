@@ -8,5 +8,6 @@
         "**/.DS_Store": true,
         "**/.idea": true,
         "**/__pycache__": true,
+        "**/venv": true
     }
 }

@@ -1,12 +1,20 @@
+from pydantic import BaseModel
 from datetime import datetime, timedelta
-from fastapi.security import HTTPBearer
-import jwt as jwt
+from fastapi import Security, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from passlib.context import CryptContext
+import jwt
 
 
-ALGORITHM = "HS256"
+class AuthDetails(BaseModel):
+    username: str
+    password: str
+
+
+ALGORITHM = 'HS256'
 SECRET_KEY = 'SECRET'
 
+security = HTTPBearer()
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
@@ -27,5 +35,19 @@ def encode_token(user_id):
     return jwt.encode(
         payload,
         SECRET_KEY,
-        algorithm=ALGORITHM
+        algorithm='HS256'
     )
+
+
+def decode_token(token):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload['sub']
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail='Signature has expired')
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(status_code=401, detail='Invalid token')
+
+
+def auth_wrapper(auth: HTTPAuthorizationCredentials = Security(security)):
+    return decode_token(auth.credentials)
